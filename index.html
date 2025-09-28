@@ -366,17 +366,76 @@
             const newPrice = (originalPrice + (originalPrice * currentAdjustment) / 100).toFixed(2);
             const newHours = (originalHours + (originalHours * currentAdjustment) / 100).toFixed(1);
             
-            alert(`Price adjustment applied!\nNew Price: $${newPrice}\nNew Hours: ${newHours}\nAdjustment: ${currentAdjustment}%`);
+            // Prepare data for webhook
+            const webhookData = {
+                customer_name: document.getElementById('customer-name').textContent,
+                quote_number: document.getElementById('quote-number').textContent,
+                move_date: document.getElementById('move-date').textContent,
+                original_price: originalPrice,
+                original_hours: originalHours,
+                adjustment_percentage: currentAdjustment,
+                new_price: parseFloat(newPrice),
+                new_hours: parseFloat(newHours),
+                price_difference: (parseFloat(newPrice) - originalPrice).toFixed(2),
+                status: 'adjusted',
+                timestamp: new Date().toISOString()
+            };
             
-            // Here you would typically send this data to your backend
-            // Example: submitToBackend(currentAdjustment, newPrice, newHours);
+            sendToWebhook(webhookData);
         }
         
         function keepOriginal() {
-            alert('Original price maintained - no changes made.');
+            // Prepare data for webhook
+            const webhookData = {
+                customer_name: document.getElementById('customer-name').textContent,
+                quote_number: document.getElementById('quote-number').textContent,
+                move_date: document.getElementById('move-date').textContent,
+                original_price: originalPrice,
+                original_hours: originalHours,
+                adjustment_percentage: 0,
+                new_price: originalPrice,
+                new_hours: originalHours,
+                price_difference: 0,
+                status: 'no_change',
+                timestamp: new Date().toISOString()
+            };
             
-            // Here you would typically send confirmation to your backend
-            // Example: submitToBackend(0, originalPrice, originalHours);
+            sendToWebhook(webhookData);
+        }
+        
+        function sendToWebhook(data) {
+            // Replace with your actual webhook URL
+            const webhookUrl = 'https://your-n8n-webhook-url.com/webhook/price-adjustment';
+            
+            // Show loading state
+            const submitBtn = document.getElementById('apply-btn');
+            const originalText = submitBtn.textContent;
+            submitBtn.textContent = 'Processing...';
+            submitBtn.disabled = true;
+            
+            fetch(webhookUrl, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(data)
+            })
+            .then(response => response.json())
+            .then(result => {
+                console.log('Success:', result);
+                alert('Price adjustment submitted successfully!');
+                // Optionally redirect or close window
+                // window.close();
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('Error submitting adjustment. Please try again.');
+            })
+            .finally(() => {
+                // Reset button
+                submitBtn.textContent = originalText;
+                submitBtn.disabled = false;
+            });
         }
         
         // Function to populate form with dynamic data (call this when loading the page)
