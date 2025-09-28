@@ -1,0 +1,407 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Move Price Adjustment - Just Move Vancouver</title>
+    <style>
+        :root {
+            /* Just Move Vancouver Theme Colors */
+            --primary-color: #001f3f;
+            --secondary-color: #1e40af;
+            --accent-color: #ea580c;
+            --text-dark: #1f2937;
+            --text-light: #6b7280;
+            --background-light: #f9fafb;
+            --background-dark: #ffffff;
+            --border-color: #e5e7eb;
+            --card-background: #f3f4f6;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+        
+        .container {
+            background: var(--background-dark);
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.1);
+            padding: 40px;
+            max-width: 700px;
+            width: 100%;
+            animation: slideUp 0.5s ease-out;
+        }
+        
+        @keyframes slideUp {
+            from { opacity: 0; transform: translateY(30px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        
+        .logo {
+            color: var(--primary-color);
+            font-size: 28px;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+        
+        .subtitle {
+            color: var(--text-light);
+            font-size: 16px;
+            margin-bottom: 20px;
+        }
+        
+        .move-info {
+            background: var(--card-background);
+            border-radius: 15px;
+            padding: 25px;
+            margin-bottom: 30px;
+            border: 2px solid var(--border-color);
+        }
+        
+        .info-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 10px;
+            font-size: 16px;
+        }
+        
+        .info-label {
+            font-weight: 600;
+            color: var(--text-dark);
+        }
+        
+        .info-value {
+            color: var(--text-light);
+        }
+        
+        .current-quote {
+            background: var(--primary-color);
+            color: white;
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 30px;
+            text-align: center;
+        }
+        
+        .current-price {
+            font-size: 24px;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+        
+        .current-hours {
+            font-size: 16px;
+            opacity: 0.9;
+        }
+        
+        .adjustment-section {
+            margin-bottom: 30px;
+        }
+        
+        .section-title {
+            font-size: 20px;
+            font-weight: bold;
+            color: var(--text-dark);
+            margin-bottom: 20px;
+            text-align: center;
+        }
+        
+        .percentage-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+            gap: 15px;
+            margin-bottom: 25px;
+        }
+        
+        .percentage-btn {
+            background: var(--background-light);
+            border: 2px solid var(--border-color);
+            border-radius: 12px;
+            padding: 15px 10px;
+            cursor: pointer;
+            text-align: center;
+            transition: all 0.3s ease;
+            font-size: 16px;
+            font-weight: 600;
+            color: var(--text-dark);
+        }
+        
+        .percentage-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(0,0,0,0.1);
+        }
+        
+        .percentage-btn.active {
+            background: var(--accent-color);
+            color: white;
+            border-color: var(--accent-color);
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(234, 88, 12, 0.3);
+        }
+        
+        .percentage-btn.negative {
+            background: #fef2f2;
+            border-color: #fecaca;
+            color: #dc2626;
+        }
+        
+        .percentage-btn.negative.active {
+            background: #dc2626;
+            color: white;
+            border-color: #dc2626;
+        }
+        
+        .percentage-btn.positive {
+            background: #f0fdf4;
+            border-color: #bbf7d0;
+            color: #16a34a;
+        }
+        
+        .percentage-btn.positive.active {
+            background: #16a34a;
+            color: white;
+            border-color: #16a34a;
+        }
+        
+        .adjusted-quote {
+            background: var(--secondary-color);
+            color: white;
+            border-radius: 15px;
+            padding: 25px;
+            text-align: center;
+            margin-bottom: 30px;
+            transition: all 0.3s ease;
+        }
+        
+        .adjusted-price {
+            font-size: 28px;
+            font-weight: bold;
+            margin-bottom: 8px;
+        }
+        
+        .adjusted-hours {
+            font-size: 18px;
+            opacity: 0.9;
+            margin-bottom: 15px;
+        }
+        
+        .price-difference {
+            font-size: 16px;
+            padding: 8px 16px;
+            background: rgba(255,255,255,0.2);
+            border-radius: 20px;
+            display: inline-block;
+        }
+        
+        .submit-section {
+            text-align: center;
+        }
+        
+        .submit-btn {
+            background: var(--accent-color);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            padding: 15px 40px;
+            font-size: 18px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin: 0 10px;
+        }
+        
+        .submit-btn:hover {
+            background: #c2410c;
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(234, 88, 12, 0.3);
+        }
+        
+        .submit-btn.secondary {
+            background: var(--text-light);
+        }
+        
+        .submit-btn.secondary:hover {
+            background: var(--text-dark);
+        }
+        
+        @media (max-width: 600px) {
+            .container {
+                padding: 25px;
+                margin: 10px;
+            }
+            
+            .percentage-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+            
+            .info-row {
+                flex-direction: column;
+                gap: 5px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div class="logo">Just Move Vancouver</div>
+            <div class="subtitle">Move Completion - Price Adjustment</div>
+        </div>
+        
+        <div class="move-info">
+            <div class="info-row">
+                <span class="info-label">Customer:</span>
+                <span class="info-value" id="customer-name">James O'Dea</span>
+            </div>
+            <div class="info-row">
+                <span class="info-label">Quote Number:</span>
+                <span class="info-value" id="quote-number">Q-0039</span>
+            </div>
+            <div class="info-row">
+                <span class="info-label">Move Date:</span>
+                <span class="info-value" id="move-date">29/06/2025</span>
+            </div>
+        </div>
+        
+        <div class="current-quote">
+            <div class="current-price" id="original-price">$1,240.00</div>
+            <div class="current-hours" id="original-hours">7.0 hours</div>
+            <div style="font-size: 14px; margin-top: 5px; opacity: 0.8;">Original Quote</div>
+        </div>
+        
+        <div class="adjustment-section">
+            <div class="section-title">Select Price Adjustment</div>
+            
+            <div class="percentage-grid">
+                <div class="percentage-btn negative" data-percent="-20">-20%</div>
+                <div class="percentage-btn negative" data-percent="-15">-15%</div>
+                <div class="percentage-btn negative" data-percent="-10">-10%</div>
+                <div class="percentage-btn negative" data-percent="-5">-5%</div>
+                <div class="percentage-btn" data-percent="5">+5%</div>
+                <div class="percentage-btn positive" data-percent="10">+10%</div>
+                <div class="percentage-btn positive" data-percent="15">+15%</div>
+                <div class="percentage-btn positive" data-percent="20">+20%</div>
+            </div>
+        </div>
+        
+        <div class="adjusted-quote" id="adjusted-display" style="display: none;">
+            <div class="adjusted-price" id="new-price">$1,240.00</div>
+            <div class="adjusted-hours" id="new-hours">7.0 hours</div>
+            <div class="price-difference" id="price-difference">No change</div>
+        </div>
+        
+        <div class="submit-section">
+            <button class="submit-btn" id="apply-btn" style="display: none;" onclick="applyAdjustment()">Apply Adjustment</button>
+            <button class="submit-btn secondary" onclick="keepOriginal()">Keep Original Price</button>
+        </div>
+    </div>
+
+    <script>
+        // Original values - these would be populated dynamically
+        const originalPrice = 1240;
+        const originalHours = 7;
+        let currentAdjustment = 0;
+        
+        // Get all percentage buttons
+        const percentageBtns = document.querySelectorAll('.percentage-btn');
+        const adjustedDisplay = document.getElementById('adjusted-display');
+        const applyBtn = document.getElementById('apply-btn');
+        
+        // Add click listeners to percentage buttons
+        percentageBtns.forEach(btn => {
+            btn.addEventListener('click', function() {
+                // Remove active class from all buttons
+                percentageBtns.forEach(b => b.classList.remove('active'));
+                
+                // Add active class to clicked button
+                this.classList.add('active');
+                
+                // Get percentage value
+                const percent = parseInt(this.dataset.percent);
+                currentAdjustment = percent;
+                
+                // Calculate new values
+                const priceAdjustment = (originalPrice * percent) / 100;
+                const hoursAdjustment = (originalHours * percent) / 100;
+                
+                const newPrice = originalPrice + priceAdjustment;
+                const newHours = originalHours + hoursAdjustment;
+                
+                // Update display
+                document.getElementById('new-price').textContent = `$${newPrice.toFixed(2)}`;
+                document.getElementById('new-hours').textContent = `${newHours.toFixed(1)} hours`;
+                
+                // Show price difference
+                const diffText = percent > 0 ? `+$${Math.abs(priceAdjustment).toFixed(2)} increase` : 
+                                percent < 0 ? `-$${Math.abs(priceAdjustment).toFixed(2)} decrease` : 'No change';
+                document.getElementById('price-difference').textContent = diffText;
+                
+                // Show adjusted quote and apply button
+                adjustedDisplay.style.display = 'block';
+                applyBtn.style.display = 'inline-block';
+                
+                // Scroll to adjusted quote
+                adjustedDisplay.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            });
+        });
+        
+        function applyAdjustment() {
+            const newPrice = (originalPrice + (originalPrice * currentAdjustment) / 100).toFixed(2);
+            const newHours = (originalHours + (originalHours * currentAdjustment) / 100).toFixed(1);
+            
+            alert(`Price adjustment applied!\nNew Price: $${newPrice}\nNew Hours: ${newHours}\nAdjustment: ${currentAdjustment}%`);
+            
+            // Here you would typically send this data to your backend
+            // Example: submitToBackend(currentAdjustment, newPrice, newHours);
+        }
+        
+        function keepOriginal() {
+            alert('Original price maintained - no changes made.');
+            
+            // Here you would typically send confirmation to your backend
+            // Example: submitToBackend(0, originalPrice, originalHours);
+        }
+        
+        // Function to populate form with dynamic data (call this when loading the page)
+        function populateFormData(customerName, quoteNumber, moveDate, price, hours) {
+            document.getElementById('customer-name').textContent = customerName;
+            document.getElementById('quote-number').textContent = quoteNumber;
+            document.getElementById('move-date').textContent = moveDate;
+            document.getElementById('original-price').textContent = `$${price.toFixed(2)}`;
+            document.getElementById('original-hours').textContent = `${hours.toFixed(1)} hours`;
+        }
+        
+        // Example of how to use with URL parameters
+        function loadFromURL() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const customerName = urlParams.get('customer') || 'James O\'Dea';
+            const quoteNumber = urlParams.get('quote') || 'Q-0039';
+            const moveDate = urlParams.get('date') || '29/06/2025';
+            const price = parseFloat(urlParams.get('price')) || 1240;
+            const hours = parseFloat(urlParams.get('hours')) || 7;
+            
+            populateFormData(customerName, quoteNumber, moveDate, price, hours);
+        }
+        
+        // Load data when page loads
+        window.addEventListener('load', loadFromURL);
+    </script>
+</body>
+</html>
