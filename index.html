@@ -368,6 +368,7 @@
             
             // Prepare data for webhook
             const webhookData = {
+                airtable_id: window.airtableId || '',
                 customer_name: document.getElementById('customer-name').textContent,
                 quote_number: document.getElementById('quote-number').textContent,
                 move_date: document.getElementById('move-date').textContent,
@@ -439,12 +440,15 @@
         }
         
         // Function to populate form with dynamic data (call this when loading the page)
-        function populateFormData(customerName, quoteNumber, moveDate, price, hours) {
+        function populateFormData(customerName, quoteNumber, moveDate, price, hours, airtableId) {
             document.getElementById('customer-name').textContent = customerName;
             document.getElementById('quote-number').textContent = quoteNumber;
             document.getElementById('move-date').textContent = moveDate;
-            document.getElementById('original-price').textContent = `$${price.toFixed(2)}`;
+            document.getElementById('original-price').textContent = `${price.toFixed(2)}`;
             document.getElementById('original-hours').textContent = `${hours.toFixed(1)} hours`;
+            
+            // Store airtable ID globally for webhook submission
+            window.airtableId = airtableId;
         }
         
         // Example of how to use with URL parameters
@@ -455,8 +459,9 @@
             const moveDate = urlParams.get('date') || '29/06/2025';
             const price = parseFloat(urlParams.get('price')) || 1240;
             const hours = parseFloat(urlParams.get('hours')) || 7;
+            const airtableId = urlParams.get('id') || '';
             
-            populateFormData(customerName, quoteNumber, moveDate, price, hours);
+            populateFormData(customerName, quoteNumber, moveDate, price, hours, airtableId);
         }
         
         // Load data when page loads
