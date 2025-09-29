@@ -268,21 +268,21 @@
         <div class="move-info">
             <div class="info-row">
                 <span class="info-label">Customer:</span>
-                <span class="info-value" id="customer-name">James O'Dea</span>
+                <span class="info-value" id="customer-name">Loading...</span>
             </div>
             <div class="info-row">
                 <span class="info-label">Quote Number:</span>
-                <span class="info-value" id="quote-number">Q-0039</span>
+                <span class="info-value" id="quote-number">Loading...</span>
             </div>
             <div class="info-row">
                 <span class="info-label">Move Date:</span>
-                <span class="info-value" id="move-date">29/06/2025</span>
+                <span class="info-value" id="move-date">Loading...</span>
             </div>
         </div>
         
         <div class="current-quote">
-            <div class="current-price" id="original-price">$1,240.00</div>
-            <div class="current-hours" id="original-hours">7.00 hours</div>
+            <div class="current-price" id="original-price">$0.00</div>
+            <div class="current-hours" id="original-hours">0.00 hours</div>
             <div style="font-size: 14px; margin-top: 5px; opacity: 0.8;">Original Quote</div>
         </div>
         
@@ -294,7 +294,7 @@
                 <div class="percentage-btn negative" data-percent="-15">-15%</div>
                 <div class="percentage-btn negative" data-percent="-10">-10%</div>
                 <div class="percentage-btn negative" data-percent="-5">-5%</div>
-                <div class="percentage-btn" data-percent="5">+5%</div>
+                <div class="percentage-btn positive" data-percent="5">+5%</div>
                 <div class="percentage-btn positive" data-percent="10">+10%</div>
                 <div class="percentage-btn positive" data-percent="15">+15%</div>
                 <div class="percentage-btn positive" data-percent="20">+20%</div>
@@ -302,8 +302,8 @@
         </div>
         
         <div class="adjusted-quote" id="adjusted-display" style="display: none;">
-            <div class="adjusted-price" id="new-price">$1,240.00</div>
-            <div class="adjusted-hours" id="new-hours">7.00 hours</div>
+            <div class="adjusted-price" id="new-price">$0.00</div>
+            <div class="adjusted-hours" id="new-hours">0.00 hours</div>
             <div class="price-difference" id="price-difference">No change</div>
         </div>
         
@@ -314,9 +314,9 @@
     </div>
 
     <script>
-        // Original values - these would be populated dynamically
-        const originalPrice = 1240;
-        const originalHours = 7;
+        // Variables to store original values from URL
+        let originalPrice = 0;
+        let originalHours = 0;
         let currentAdjustment = 0;
         
         // Get all percentage buttons
@@ -388,6 +388,7 @@
         function keepOriginal() {
             // Prepare data for webhook
             const webhookData = {
+                airtable_id: window.airtableId || '',
                 customer_name: document.getElementById('customer-name').textContent,
                 quote_number: document.getElementById('quote-number').textContent,
                 move_date: document.getElementById('move-date').textContent,
@@ -410,9 +411,14 @@
             
             // Show loading state
             const submitBtn = document.getElementById('apply-btn');
-            const originalText = submitBtn.textContent;
+            const keepBtn = document.querySelector('.submit-btn.secondary');
+            const originalApplyText = submitBtn.textContent;
+            const originalKeepText = keepBtn.textContent;
+            
             submitBtn.textContent = 'Processing...';
             submitBtn.disabled = true;
+            keepBtn.textContent = 'Processing...';
+            keepBtn.disabled = true;
             
             fetch(webhookUrl, {
                 method: 'POST',
@@ -433,14 +439,21 @@
                 alert('Error submitting adjustment. Please try again.');
             })
             .finally(() => {
-                // Reset button
-                submitBtn.textContent = originalText;
+                // Reset buttons
+                submitBtn.textContent = originalApplyText;
                 submitBtn.disabled = false;
+                keepBtn.textContent = originalKeepText;
+                keepBtn.disabled = false;
             });
         }
         
-        // Function to populate form with dynamic data (call this when loading the page)
+        // Function to populate form with dynamic data
         function populateFormData(customerName, quoteNumber, moveDate, price, hours, airtableId) {
+            // Update global variables for calculations
+            originalPrice = price;
+            originalHours = hours;
+            
+            // Update display elements
             document.getElementById('customer-name').textContent = customerName;
             document.getElementById('quote-number').textContent = quoteNumber;
             document.getElementById('move-date').textContent = moveDate;
@@ -451,14 +464,14 @@
             window.airtableId = airtableId;
         }
         
-        // Example of how to use with URL parameters
+        // Load data from URL parameters
         function loadFromURL() {
             const urlParams = new URLSearchParams(window.location.search);
-            const customerName = urlParams.get('customer') || 'James O\'Dea';
-            const quoteNumber = urlParams.get('quote') || 'Q-0039';
-            const moveDate = urlParams.get('date') || '29/06/2025';
-            const price = parseFloat(urlParams.get('price')) || 1240;
-            const hours = parseFloat(urlParams.get('hours')) || 7;
+            const customerName = urlParams.get('customer') || 'Unknown Customer';
+            const quoteNumber = urlParams.get('quote') || 'N/A';
+            const moveDate = urlParams.get('date') || 'N/A';
+            const price = parseFloat(urlParams.get('price')) || 0;
+            const hours = parseFloat(urlParams.get('hours')) || 0;
             const airtableId = urlParams.get('id') || '';
             
             populateFormData(customerName, quoteNumber, moveDate, price, hours, airtableId);
