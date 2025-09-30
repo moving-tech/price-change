@@ -324,6 +324,14 @@
         const adjustedDisplay = document.getElementById('adjusted-display');
         const applyBtn = document.getElementById('apply-btn');
         
+        // Function to round to nearest 15 minutes (0.25 hours)
+        function roundToNearestQuarterHour(hours) {
+            // Multiply by 4 to convert to 15-min increments, round, then divide back
+            const rounded = Math.round(hours * 4) / 4;
+            // Ensure we return exactly 2 decimal places
+            return Math.round(rounded * 100) / 100;
+        }
+        
         // Add click listeners to percentage buttons
         percentageBtns.forEach(btn => {
             btn.addEventListener('click', function() {
@@ -337,21 +345,48 @@
                 const percent = parseInt(this.dataset.percent);
                 currentAdjustment = percent;
                 
-                // Calculate new values
-                const priceAdjustment = (originalPrice * percent) / 100;
+                // Calculate new hours with percentage adjustment
                 const hoursAdjustment = (originalHours * percent) / 100;
+                const calculatedNewHours = originalHours + hoursAdjustment;
                 
-                const newPrice = originalPrice + priceAdjustment;
-                const newHours = originalHours + hoursAdjustment;
+                console.log('Original hours:', originalHours);
+                console.log('Calculated new hours before rounding:', calculatedNewHours);
+                
+                // Round to nearest 15 minutes (0.25 hours)
+                const newHours = roundToNearestQuarterHour(calculatedNewHours);
+                
+                console.log('Rounded new hours:', newHours);
+                console.log('Should be multiple of 0.25:', newHours % 0.25 === 0);
+                
+                // Calculate hourly rate and new price based on rounded hours
+                const hourlyRate = originalPrice / originalHours;
+                const newPrice = hourlyRate * newHours;
+                
+                console.log('Hourly rate:', hourlyRate);
+                console.log('New price:', newPrice);
+                
+                // Calculate differences
+                const hoursDifference = newHours - originalHours;
+                const priceDifference = newPrice - originalPrice;
                 
                 // Update display
-                document.getElementById('new-price').textContent = `$${newPrice.toFixed(2)}`;
+                document.getElementById('new-price').textContent = `${newPrice.toFixed(2)}`;
                 document.getElementById('new-hours').textContent = `${newHours.toFixed(2)} hours`;
                 
-                // Show price difference
-                const diffText = percent > 0 ? `+$${Math.abs(priceAdjustment).toFixed(2)} increase` : 
-                                percent < 0 ? `-$${Math.abs(priceAdjustment).toFixed(2)} decrease` : 'No change';
-                document.getElementById('price-difference').textContent = diffText;
+                // Show detailed price difference
+                const hoursDiffText = hoursDifference >= 0 ? 
+                    `+${hoursDifference.toFixed(2)} hours` : 
+                    `${hoursDifference.toFixed(2)} hours`;
+                
+                const priceDiffText = priceDifference >= 0 ? 
+                    `+${priceDifference.toFixed(2)} increase` : 
+                    `-${Math.abs(priceDifference).toFixed(2)} decrease`;
+                
+                document.getElementById('price-difference').textContent = `${priceDiffText} (${hoursDiffText})`;
+                
+                // Store the rounded values for webhook submission
+                window.adjustedPrice = newPrice;
+                window.adjustedHours = newHours;
                 
                 // Show adjusted quote and apply button
                 adjustedDisplay.style.display = 'block';
@@ -363,25 +398,31 @@
         });
         
         function applyAdjustment() {
-            const newPrice = (originalPrice + (originalPrice * currentAdjustment) / 100).toFixed(2);
-            const newHours = (originalHours + (originalHours * currentAdjustment) / 100).toFixed(2);
+            // Use the stored rounded values
+            const newPrice = window.adjustedPrice || originalPrice;
+            const newHours = window.adjustedHours || originalHours;
             
-            // Prepare data for webhook
+            const priceDifference = newPrice - originalPrice;
+            const hoursDifference = newHours - originalHours;
+            
+            // Prepare data for webhook - ensure proper rounding
             const webhookData = {
                 airtable_id: window.airtableId || '',
                 customer_name: document.getElementById('customer-name').textContent,
                 quote_number: document.getElementById('quote-number').textContent,
                 move_date: document.getElementById('move-date').textContent,
-                original_price: originalPrice,
-                original_hours: originalHours,
+                original_price: Math.round(originalPrice * 100) / 100,
+                original_hours: Math.round(originalHours * 100) / 100,
                 adjustment_percentage: currentAdjustment,
-                new_price: parseFloat(newPrice),
-                new_hours: parseFloat(newHours),
-                price_difference: (parseFloat(newPrice) - originalPrice).toFixed(2),
+                new_price: Math.round(newPrice * 100) / 100,
+                new_hours: Math.round(newHours * 100) / 100,
+                price_difference: Math.round(priceDifference * 100) / 100,
+                hours_difference: Math.round(hoursDifference * 100) / 100,
                 status: 'adjusted',
                 timestamp: new Date().toISOString()
             };
             
+            console.log('Sending webhook data:', webhookData); // Debug log
             sendToWebhook(webhookData);
         }
         
@@ -398,6 +439,7 @@
                 new_price: originalPrice,
                 new_hours: originalHours,
                 price_difference: 0,
+                hours_difference: 0,
                 status: 'no_change',
                 timestamp: new Date().toISOString()
             };
