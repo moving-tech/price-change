@@ -324,6 +324,7 @@
         // Variables to store original values from URL
         let originalPrice = 0;
         let originalHours = 0;
+        let hourlyRate = 0;
         let currentAdjustment = 0;
         
         // Get all percentage buttons
@@ -359,8 +360,7 @@
                 console.log('Rounded new hours:', newHours);
                 console.log('Should be multiple of 0.25:', newHours % 0.25 === 0);
                 
-                // Calculate hourly rate and new price based on rounded hours
-                const hourlyRate = originalPrice / originalHours;
+                // Calculate new price based on rounded hours and hourly rate
                 const newPrice = hourlyRate * newHours;
                 
                 console.log('Hourly rate:', hourlyRate);
@@ -503,14 +503,15 @@
             });
         }
         
-        function populateFormData(customerName, quoteNumber, moveDate, price, hours, airtableId) {
+        function populateFormData(customerName, quoteNumber, moveDate, price, hours, rate, airtableId) {
             originalPrice = price;
             originalHours = hours;
+            hourlyRate = rate;
             
             document.getElementById('customer-name').textContent = customerName;
             document.getElementById('quote-number').textContent = quoteNumber;
             document.getElementById('move-date').textContent = moveDate;
-            document.getElementById('original-price').textContent = `$${price.toFixed(2)}`;
+            document.getElementById('original-price').textContent = `${price.toFixed(2)}`;
             document.getElementById('original-hours').textContent = `${hours.toFixed(2)} hours`;
             
             window.airtableId = airtableId;
@@ -523,9 +524,10 @@
             const moveDate = urlParams.get('date') || 'N/A';
             const price = parseFloat(urlParams.get('price')) || 0;
             const hours = parseFloat(urlParams.get('hours')) || 0;
+            const rate = parseFloat(urlParams.get('rate')) || (price / hours) || 0; // Use provided rate or calculate from price/hours
             const airtableId = urlParams.get('id') || '';
             
-            populateFormData(customerName, quoteNumber, moveDate, price, hours, airtableId);
+            populateFormData(customerName, quoteNumber, moveDate, price, hours, rate, airtableId);
         }
         
         window.addEventListener('load', loadFromURL);
