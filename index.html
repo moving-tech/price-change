@@ -6,7 +6,6 @@
     <title>Move Price Adjustment - Just Move Vancouver</title>
     <style>
         :root {
-            /* Just Move Vancouver Theme Colors */
             --primary-color: #001f3f;
             --secondary-color: #1e40af;
             --accent-color: #ea580c;
@@ -303,7 +302,15 @@
         
         <div class="adjusted-quote" id="adjusted-display" style="display: none;">
             <div class="adjusted-price" id="new-price">$0.00</div>
+            <div style="font-size: 14px; opacity: 0.8; margin-bottom: 10px;">Before Tax</div>
             <div class="adjusted-hours" id="new-hours">0.00 hours</div>
+            <div style="font-size: 16px; margin: 15px 0;">
+                <div style="opacity: 0.8;">PST (7%): <span id="pst-amount">$0.00</span></div>
+                <div style="opacity: 0.8;">GST (5%): <span id="gst-amount">$0.00</span></div>
+                <div style="font-weight: bold; font-size: 20px; margin-top: 8px;">
+                    Total After Tax: <span id="after-tax-price">$0.00</span>
+                </div>
+            </div>
             <div class="price-difference" id="price-difference">No change</div>
         </div>
         
@@ -326,22 +333,16 @@
         
         // Function to round to nearest 15 minutes (0.25 hours)
         function roundToNearestQuarterHour(hours) {
-            // Multiply by 4 to convert to 15-min increments, round, then divide back
             const rounded = Math.round(hours * 4) / 4;
-            // Ensure we return exactly 2 decimal places
             return Math.round(rounded * 100) / 100;
         }
         
         // Add click listeners to percentage buttons
         percentageBtns.forEach(btn => {
             btn.addEventListener('click', function() {
-                // Remove active class from all buttons
                 percentageBtns.forEach(b => b.classList.remove('active'));
-                
-                // Add active class to clicked button
                 this.classList.add('active');
                 
-                // Get percentage value
                 const percent = parseInt(this.dataset.percent);
                 currentAdjustment = percent;
                 
@@ -352,7 +353,7 @@
                 console.log('Original hours:', originalHours);
                 console.log('Calculated new hours before rounding:', calculatedNewHours);
                 
-                // Round to nearest 15 minutes (0.25 hours)
+                // Round to nearest 15 minutes
                 const newHours = roundToNearestQuarterHour(calculatedNewHours);
                 
                 console.log('Rounded new hours:', newHours);
@@ -369,9 +370,17 @@
                 const hoursDifference = newHours - originalHours;
                 const priceDifference = newPrice - originalPrice;
                 
+                // Calculate taxes
+                const pstAmount = newPrice * 0.07;
+                const gstAmount = newPrice * 0.05;
+                const afterTaxPrice = newPrice + pstAmount + gstAmount;
+                
                 // Update display
-                document.getElementById('new-price').textContent = `${newPrice.toFixed(2)}`;
+                document.getElementById('new-price').textContent = `$${newPrice.toFixed(2)}`;
                 document.getElementById('new-hours').textContent = `${newHours.toFixed(2)} hours`;
+                document.getElementById('pst-amount').textContent = `$${pstAmount.toFixed(2)}`;
+                document.getElementById('gst-amount').textContent = `$${gstAmount.toFixed(2)}`;
+                document.getElementById('after-tax-price').textContent = `$${afterTaxPrice.toFixed(2)}`;
                 
                 // Show detailed price difference
                 const hoursDiffText = hoursDifference >= 0 ? 
@@ -379,33 +388,34 @@
                     `${hoursDifference.toFixed(2)} hours`;
                 
                 const priceDiffText = priceDifference >= 0 ? 
-                    `+${priceDifference.toFixed(2)} increase` : 
-                    `-${Math.abs(priceDifference).toFixed(2)} decrease`;
+                    `+$${priceDifference.toFixed(2)} increase` : 
+                    `-$${Math.abs(priceDifference).toFixed(2)} decrease`;
                 
                 document.getElementById('price-difference').textContent = `${priceDiffText} (${hoursDiffText})`;
                 
-                // Store the rounded values for webhook submission
+                // Store values for webhook submission
                 window.adjustedPrice = newPrice;
                 window.adjustedHours = newHours;
+                window.pstAmount = pstAmount;
+                window.gstAmount = gstAmount;
+                window.afterTaxPrice = afterTaxPrice;
                 
-                // Show adjusted quote and apply button
                 adjustedDisplay.style.display = 'block';
                 applyBtn.style.display = 'inline-block';
-                
-                // Scroll to adjusted quote
                 adjustedDisplay.scrollIntoView({ behavior: 'smooth', block: 'center' });
             });
         });
         
         function applyAdjustment() {
-            // Use the stored rounded values
             const newPrice = window.adjustedPrice || originalPrice;
             const newHours = window.adjustedHours || originalHours;
+            const pstAmount = window.pstAmount || (originalPrice * 0.07);
+            const gstAmount = window.gstAmount || (originalPrice * 0.05);
+            const afterTaxPrice = window.afterTaxPrice || (originalPrice * 1.12);
             
             const priceDifference = newPrice - originalPrice;
             const hoursDifference = newHours - originalHours;
             
-            // Prepare data for webhook - ensure proper rounding
             const webhookData = {
                 airtable_id: window.airtableId || '',
                 customer_name: document.getElementById('customer-name').textContent,
@@ -418,16 +428,22 @@
                 new_hours: Math.round(newHours * 100) / 100,
                 price_difference: Math.round(priceDifference * 100) / 100,
                 hours_difference: Math.round(hoursDifference * 100) / 100,
+                pst: Math.round(pstAmount * 100) / 100,
+                gst: Math.round(gstAmount * 100) / 100,
+                after_tax: Math.round(afterTaxPrice * 100) / 100,
                 status: 'adjusted',
                 timestamp: new Date().toISOString()
             };
             
-            console.log('Sending webhook data:', webhookData); // Debug log
+            console.log('Sending webhook data:', webhookData);
             sendToWebhook(webhookData);
         }
         
         function keepOriginal() {
-            // Prepare data for webhook
+            const originalPst = originalPrice * 0.07;
+            const originalGst = originalPrice * 0.05;
+            const originalAfterTax = originalPrice + originalPst + originalGst;
+            
             const webhookData = {
                 airtable_id: window.airtableId || '',
                 customer_name: document.getElementById('customer-name').textContent,
@@ -440,6 +456,9 @@
                 new_hours: originalHours,
                 price_difference: 0,
                 hours_difference: 0,
+                pst: Math.round(originalPst * 100) / 100,
+                gst: Math.round(originalGst * 100) / 100,
+                after_tax: Math.round(originalAfterTax * 100) / 100,
                 status: 'no_change',
                 timestamp: new Date().toISOString()
             };
@@ -448,10 +467,8 @@
         }
         
         function sendToWebhook(data) {
-            // Your actual webhook URL
             const webhookUrl = 'https://n8n-movers-project-n8n.5gwahg.easypanel.host/webhook/f73c1753-3498-47c0-99a9-dceb4f594501';
             
-            // Show loading state
             const submitBtn = document.getElementById('apply-btn');
             const keepBtn = document.querySelector('.submit-btn.secondary');
             const originalApplyText = submitBtn.textContent;
@@ -473,15 +490,12 @@
             .then(result => {
                 console.log('Success:', result);
                 alert('Price adjustment submitted successfully!');
-                // Optionally redirect or close window
-                // window.close();
             })
             .catch(error => {
                 console.error('Error:', error);
                 alert('Error submitting adjustment. Please try again.');
             })
             .finally(() => {
-                // Reset buttons
                 submitBtn.textContent = originalApplyText;
                 submitBtn.disabled = false;
                 keepBtn.textContent = originalKeepText;
@@ -489,24 +503,19 @@
             });
         }
         
-        // Function to populate form with dynamic data
         function populateFormData(customerName, quoteNumber, moveDate, price, hours, airtableId) {
-            // Update global variables for calculations
             originalPrice = price;
             originalHours = hours;
             
-            // Update display elements
             document.getElementById('customer-name').textContent = customerName;
             document.getElementById('quote-number').textContent = quoteNumber;
             document.getElementById('move-date').textContent = moveDate;
             document.getElementById('original-price').textContent = `$${price.toFixed(2)}`;
             document.getElementById('original-hours').textContent = `${hours.toFixed(2)} hours`;
             
-            // Store airtable ID globally for webhook submission
             window.airtableId = airtableId;
         }
         
-        // Load data from URL parameters
         function loadFromURL() {
             const urlParams = new URLSearchParams(window.location.search);
             const customerName = urlParams.get('customer') || 'Unknown Customer';
@@ -519,7 +528,6 @@
             populateFormData(customerName, quoteNumber, moveDate, price, hours, airtableId);
         }
         
-        // Load data when page loads
         window.addEventListener('load', loadFromURL);
     </script>
 </body>
