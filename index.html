@@ -35,17 +35,26 @@
             z-index: 0;
         }
         
+        .page-wrapper {
+            width: 100%;
+            max-width: 1200px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        
         .container {
             background: #2a2a2a;
             border-radius: 24px;
             border: 1px solid #3a3a3a;
             box-shadow: 0 25px 70px rgba(0,0,0,0.5);
-            padding: 40px;
             max-width: 700px;
             width: 100%;
             position: relative;
             z-index: 1;
             animation: slideIn 0.6s ease-out;
+            overflow: hidden;
         }
         
         @keyframes slideIn {
@@ -70,9 +79,11 @@
             }
         }
         
-        .header {
+        .royal-blue-banner {
+            background: linear-gradient(135deg, #4169E1 0%, #1E3A8A 100%);
+            padding: 30px 40px;
             text-align: center;
-            margin-bottom: 30px;
+            box-shadow: 0 4px 20px rgba(65, 105, 225, 0.3);
         }
         
         .logo-container {
@@ -96,9 +107,12 @@
         }
         
         .subtitle {
-            color: #9ca3af;
+            color: rgba(255, 255, 255, 0.9);
             font-size: 16px;
-            margin-bottom: 20px;
+        }
+        
+        .content-area {
+            padding: 40px;
         }
         
         .move-info {
@@ -328,9 +342,12 @@
         }
         
         @media (max-width: 600px) {
-            .container {
+            .royal-blue-banner {
+                padding: 20px;
+            }
+            
+            .content-area {
                 padding: 25px;
-                margin: 10px;
             }
             
             .percentage-grid {
@@ -353,70 +370,80 @@
     </style>
 </head>
 <body>
-    <div class="container">
-        <div class="header">
-            <div class="logo-container">
-                <img src="https://i.imgur.com/3H02zQ5.png" alt="Just Move Vancouver" class="logo-img">
-                <div class="logo">Just Move Vancouver</div>
+    <div class="page-wrapper">
+        <div class="container">
+            <div class="royal-blue-banner">
+                <div class="logo-container">
+                    <img src="https://i.imgur.com/3H02zQ5.png" alt="Just Move Vancouver" class="logo-img">
+                    <div class="logo">Just Move Vancouver</div>
+                </div>
+                <div class="subtitle">Move Completion - Price Adjustment</div>
             </div>
-            <div class="subtitle">Move Completion - Price Adjustment</div>
-        </div>
-        
-        <div class="move-info">
-            <div class="info-row">
-                <span class="info-label">Customer:</span>
-                <span class="info-value" id="customer-name">Loading...</span>
-            </div>
-        </div>
-        
-        <div class="current-quote">
-            <div class="current-price" id="original-price">$0.00</div>
-            <div class="current-hours" id="original-hours">0.00 hours</div>
-            <div class="quote-label">Original Quote</div>
-        </div>
-        
-        <div class="adjustment-section">
-            <div class="section-title">Select Price Adjustment</div>
             
-            <div class="percentage-grid">
-                <div class="percentage-btn negative" data-percent="-20">-20%</div>
-                <div class="percentage-btn negative" data-percent="-15">-15%</div>
-                <div class="percentage-btn negative" data-percent="-10">-10%</div>
-                <div class="percentage-btn negative" data-percent="-5">-5%</div>
-                <div class="percentage-btn positive" data-percent="5">+5%</div>
-                <div class="percentage-btn positive" data-percent="10">+10%</div>
-                <div class="percentage-btn positive" data-percent="15">+15%</div>
-                <div class="percentage-btn positive" data-percent="20">+20%</div>
-            </div>
-        </div>
-        
-        <div class="adjusted-quote" id="adjusted-display" style="display: none;">
-            <div class="adjusted-price" id="new-price">$0.00</div>
-            <div style="font-size: 14px; color: #9ca3af; margin-bottom: 10px;">Before Tax</div>
-            <div class="adjusted-hours" id="new-hours">0.00 hours</div>
-            <div class="tax-section">
-                <div class="tax-row">PST (7%): <span id="pst-amount">$0.00</span></div>
-                <div class="tax-row">GST (5%): <span id="gst-amount">$0.00</span></div>
-                <div class="total-row">
-                    Total After Tax: <span id="after-tax-price">$0.00</span>
+            <div class="content-area">
+                <div class="move-info">
+                    <div class="info-row">
+                        <span class="info-label">Customer:</span>
+                        <span class="info-value" id="customer-name">Loading...</span>
+                    </div>
+                </div>
+                
+                <div class="current-quote">
+                    <div class="current-price" id="original-price">$0.00</div>
+                    <div class="current-hours" id="original-hours">0.00 hours</div>
+                    <div class="quote-label">Original Quote (After Tax)</div>
+                </div>
+                
+                <div class="adjustment-section">
+                    <div class="section-title">Select Price Adjustment</div>
+                    
+                    <div class="percentage-grid">
+                        <div class="percentage-btn negative" data-percent="-20">-20%</div>
+                        <div class="percentage-btn negative" data-percent="-15">-15%</div>
+                        <div class="percentage-btn negative" data-percent="-10">-10%</div>
+                        <div class="percentage-btn negative" data-percent="-5">-5%</div>
+                        <div class="percentage-btn positive" data-percent="5">+5%</div>
+                        <div class="percentage-btn positive" data-percent="10">+10%</div>
+                        <div class="percentage-btn positive" data-percent="15">+15%</div>
+                        <div class="percentage-btn positive" data-percent="20">+20%</div>
+                    </div>
+                </div>
+                
+                <div class="adjusted-quote" id="adjusted-display" style="display: none;">
+                    <div class="adjusted-price" id="new-price">$0.00</div>
+                    <div style="font-size: 14px; color: #9ca3af; margin-bottom: 10px;">Before Tax</div>
+                    <div class="adjusted-hours" id="new-hours">0.00 hours</div>
+                    <div class="tax-section">
+                        <div class="tax-row">PST (7%): <span id="pst-amount">$0.00</span></div>
+                        <div class="tax-row">GST (5%): <span id="gst-amount">$0.00</span></div>
+                        <div class="total-row">
+                            Total After Tax: <span id="after-tax-price">$0.00</span>
+                        </div>
+                    </div>
+                    <div class="price-difference" id="price-difference">No change</div>
+                </div>
+                
+                <div class="submit-section">
+                    <button class="submit-btn" id="apply-btn" style="display: none;" onclick="applyAdjustment()">Apply Adjustment</button>
+                    <button class="submit-btn secondary" onclick="keepOriginal()">Keep Original Price</button>
                 </div>
             </div>
-            <div class="price-difference" id="price-difference">No change</div>
-        </div>
-        
-        <div class="submit-section">
-            <button class="submit-btn" id="apply-btn" style="display: none;" onclick="applyAdjustment()">Apply Adjustment</button>
-            <button class="submit-btn secondary" onclick="keepOriginal()">Keep Original Price</button>
         </div>
     </div>
 
     <script>
         // Variables to store values
-        let originalPrice = 0;
+        let originalAfterTaxPrice = 0;
+        let originalPreTaxPrice = 0;
         let originalHours = 0;
         let hourlyRate = 0;
         let currentAdjustment = 0;
         let recordID = '';
+        
+        // Tax rates
+        const PST_RATE = 0.07;
+        const GST_RATE = 0.05;
+        const TOTAL_TAX_RATE = PST_RATE + GST_RATE; // 0.12
         
         // Get elements
         const percentageBtns = document.querySelectorAll('.percentage-btn');
@@ -427,30 +454,6 @@
         function roundToNearestQuarterHour(hours) {
             const rounded = Math.round(hours * 4) / 4;
             return Math.round(rounded * 100) / 100;
-        }
-        
-        // Function to parse hours from "X hours Y minutes" format
-        function parseHours(hoursString) {
-            // If it's already a number, return it
-            if (!isNaN(hoursString)) {
-                return parseFloat(hoursString);
-            }
-            
-            // Parse "X hours Y minutes" format
-            const hoursMatch = hoursString.match(/(\d+)\s*hours?/i);
-            const minutesMatch = hoursString.match(/(\d+)\s*minutes?/i);
-            
-            let totalHours = 0;
-            
-            if (hoursMatch) {
-                totalHours += parseInt(hoursMatch[1]);
-            }
-            
-            if (minutesMatch) {
-                totalHours += parseInt(minutesMatch[1]) / 60;
-            }
-            
-            return totalHours;
         }
         
         // Add click listeners to percentage buttons
@@ -469,20 +472,26 @@
                 // Round to nearest 15 minutes
                 const newHours = roundToNearestQuarterHour(calculatedNewHours);
                 
-                // Calculate new price based on rounded hours and hourly rate
-                const newPrice = hourlyRate * newHours;
+                // Calculate new pre-tax price with percentage adjustment
+                const preTaxAdjustment = (originalPreTaxPrice * percent) / 100;
+                const newPreTaxPrice = originalPreTaxPrice + preTaxAdjustment;
+                
+                // Calculate taxes on new pre-tax price
+                const pstAmount = newPreTaxPrice * PST_RATE;
+                const gstAmount = newPreTaxPrice * GST_RATE;
+                const afterTaxPrice = newPreTaxPrice + pstAmount + gstAmount;
                 
                 // Calculate differences
                 const hoursDifference = newHours - originalHours;
-                const priceDifference = newPrice - originalPrice;
+                const priceDifference = afterTaxPrice - originalAfterTaxPrice;
                 
-                // Calculate taxes
-                const pstAmount = newPrice * 0.07;
-                const gstAmount = newPrice * 0.05;
-                const afterTaxPrice = newPrice + pstAmount + gstAmount;
+                console.log('Original pre-tax:', originalPreTaxPrice);
+                console.log('New pre-tax:', newPreTaxPrice);
+                console.log('New after-tax:', afterTaxPrice);
+                console.log('Adjustment:', percent + '%');
                 
                 // Update display
-                document.getElementById('new-price').textContent = `$${newPrice.toFixed(2)}`;
+                document.getElementById('new-price').textContent = `$${newPreTaxPrice.toFixed(2)}`;
                 document.getElementById('new-hours').textContent = `${newHours.toFixed(2)} hours`;
                 document.getElementById('pst-amount').textContent = `$${pstAmount.toFixed(2)}`;
                 document.getElementById('gst-amount').textContent = `$${gstAmount.toFixed(2)}`;
@@ -500,7 +509,7 @@
                 document.getElementById('price-difference').textContent = `${priceDiffText} (${hoursDiffText})`;
                 
                 // Store values for webhook submission
-                window.adjustedPrice = newPrice;
+                window.adjustedPreTaxPrice = newPreTaxPrice;
                 window.adjustedHours = newHours;
                 window.pstAmount = pstAmount;
                 window.gstAmount = gstAmount;
@@ -513,28 +522,29 @@
         });
         
         function applyAdjustment() {
-            const newPrice = window.adjustedPrice || originalPrice;
+            const newPreTaxPrice = window.adjustedPreTaxPrice || originalPreTaxPrice;
             const newHours = window.adjustedHours || originalHours;
-            const pstAmount = window.pstAmount || (originalPrice * 0.07);
-            const gstAmount = window.gstAmount || (originalPrice * 0.05);
-            const afterTaxPrice = window.afterTaxPrice || (originalPrice * 1.12);
+            const pstAmount = window.pstAmount || (originalPreTaxPrice * PST_RATE);
+            const gstAmount = window.gstAmount || (originalPreTaxPrice * GST_RATE);
+            const afterTaxPrice = window.afterTaxPrice || originalAfterTaxPrice;
             
-            const priceDifference = newPrice - originalPrice;
+            const priceDifference = afterTaxPrice - originalAfterTaxPrice;
             const hoursDifference = newHours - originalHours;
             
             const webhookData = {
                 recordID: recordID,
                 customer_name: document.getElementById('customer-name').textContent,
-                original_price: Math.round(originalPrice * 100) / 100,
+                original_price_after_tax: Math.round(originalAfterTaxPrice * 100) / 100,
+                original_price_before_tax: Math.round(originalPreTaxPrice * 100) / 100,
                 original_hours: Math.round(originalHours * 100) / 100,
                 adjustment_percentage: currentAdjustment,
-                new_price: Math.round(newPrice * 100) / 100,
+                new_price_before_tax: Math.round(newPreTaxPrice * 100) / 100,
+                new_price_after_tax: Math.round(afterTaxPrice * 100) / 100,
                 new_hours: Math.round(newHours * 100) / 100,
                 price_difference: Math.round(priceDifference * 100) / 100,
                 hours_difference: Math.round(hoursDifference * 100) / 100,
                 pst: Math.round(pstAmount * 100) / 100,
                 gst: Math.round(gstAmount * 100) / 100,
-                after_tax: Math.round(afterTaxPrice * 100) / 100,
                 status: 'adjusted',
                 timestamp: new Date().toISOString()
             };
@@ -544,23 +554,23 @@
         }
         
         function keepOriginal() {
-            const originalPst = originalPrice * 0.07;
-            const originalGst = originalPrice * 0.05;
-            const originalAfterTax = originalPrice + originalPst + originalGst;
+            const originalPst = originalPreTaxPrice * PST_RATE;
+            const originalGst = originalPreTaxPrice * GST_RATE;
             
             const webhookData = {
                 recordID: recordID,
                 customer_name: document.getElementById('customer-name').textContent,
-                original_price: originalPrice,
+                original_price_after_tax: originalAfterTaxPrice,
+                original_price_before_tax: originalPreTaxPrice,
                 original_hours: originalHours,
                 adjustment_percentage: 0,
-                new_price: originalPrice,
+                new_price_before_tax: originalPreTaxPrice,
+                new_price_after_tax: originalAfterTaxPrice,
                 new_hours: originalHours,
                 price_difference: 0,
                 hours_difference: 0,
                 pst: Math.round(originalPst * 100) / 100,
                 gst: Math.round(originalGst * 100) / 100,
-                after_tax: Math.round(originalAfterTax * 100) / 100,
                 status: 'no_change',
                 timestamp: new Date().toISOString()
             };
@@ -608,19 +618,30 @@
         function loadFromURL() {
             const urlParams = new URLSearchParams(window.location.search);
             const customerName = urlParams.get('name') || 'Unknown Customer';
-            const price = parseFloat(urlParams.get('price')) || 0;
-            const hoursParam = urlParams.get('hours') || '0';
-            const hours = parseHours(hoursParam);
+            const afterTaxPrice = parseFloat(urlParams.get('price')) || 0;
+            const hours = parseFloat(urlParams.get('hours')) || 0;
             recordID = urlParams.get('recordID') || '';
             
-            // Calculate hourly rate
-            hourlyRate = hours > 0 ? price / hours : 0;
+            // Calculate pre-tax price from after-tax price
+            // After-tax = Pre-tax * 1.12 (PST 7% + GST 5%)
+            // Pre-tax = After-tax / 1.12
+            const preTaxPrice = afterTaxPrice / (1 + TOTAL_TAX_RATE);
             
-            originalPrice = price;
+            // Calculate hourly rate based on pre-tax price
+            hourlyRate = hours > 0 ? preTaxPrice / hours : 0;
+            
+            originalAfterTaxPrice = afterTaxPrice;
+            originalPreTaxPrice = preTaxPrice;
             originalHours = hours;
             
+            console.log('Loaded from URL:');
+            console.log('After-tax price:', afterTaxPrice);
+            console.log('Calculated pre-tax price:', preTaxPrice);
+            console.log('Hours:', hours);
+            console.log('Hourly rate:', hourlyRate);
+            
             document.getElementById('customer-name').textContent = customerName;
-            document.getElementById('original-price').textContent = `$${price.toFixed(2)}`;
+            document.getElementById('original-price').textContent = `$${afterTaxPrice.toFixed(2)}`;
             document.getElementById('original-hours').textContent = `${hours.toFixed(2)} hours`;
         }
         
