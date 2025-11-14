@@ -456,6 +456,44 @@
             return Math.round(rounded * 100) / 100;
         }
         
+        // Function to parse hours - accepts both decimal (7.75) and text format (7 hours 45 minutes)
+        function parseHours(hoursString) {
+            // If it's already a number, return it
+            if (!isNaN(hoursString) && typeof hoursString !== 'string') {
+                return parseFloat(hoursString);
+            }
+            
+            // Convert to string if needed
+            const hoursStr = String(hoursString).trim();
+            
+            // Try parsing as decimal first
+            const decimalValue = parseFloat(hoursStr);
+            if (!isNaN(decimalValue) && !hoursStr.includes('hour') && !hoursStr.includes('minute')) {
+                return decimalValue;
+            }
+            
+            // Parse "X hours Y minutes" format
+            const hoursMatch = hoursStr.match(/(\d+)\s*hours?/i);
+            const minutesMatch = hoursStr.match(/(\d+)\s*minutes?/i);
+            
+            let totalHours = 0;
+            
+            if (hoursMatch) {
+                totalHours += parseInt(hoursMatch[1]);
+            }
+            
+            if (minutesMatch) {
+                totalHours += parseInt(minutesMatch[1]) / 60;
+            }
+            
+            // If neither format worked, try one more time as plain decimal
+            if (totalHours === 0) {
+                return parseFloat(hoursStr) || 0;
+            }
+            
+            return totalHours;
+        }
+        
         // Add click listeners to percentage buttons
         percentageBtns.forEach(btn => {
             btn.addEventListener('click', function() {
@@ -619,7 +657,8 @@
             const urlParams = new URLSearchParams(window.location.search);
             const customerName = urlParams.get('name') || 'Unknown Customer';
             const afterTaxPrice = parseFloat(urlParams.get('price')) || 0;
-            const hours = parseFloat(urlParams.get('hours')) || 0;
+            const hoursParam = urlParams.get('hours') || '0';
+            const hours = parseHours(hoursParam);
             recordID = urlParams.get('recordID') || '';
             
             // Calculate pre-tax price from after-tax price
@@ -637,7 +676,7 @@
             console.log('Loaded from URL:');
             console.log('After-tax price:', afterTaxPrice);
             console.log('Calculated pre-tax price:', preTaxPrice);
-            console.log('Hours:', hours);
+            console.log('Hours (parsed):', hours);
             console.log('Hourly rate:', hourlyRate);
             
             document.getElementById('customer-name').textContent = customerName;
