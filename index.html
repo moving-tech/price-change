@@ -429,6 +429,30 @@
             return Math.round(rounded * 100) / 100;
         }
         
+        // Function to parse hours from "X hours Y minutes" format
+        function parseHours(hoursString) {
+            // If it's already a number, return it
+            if (!isNaN(hoursString)) {
+                return parseFloat(hoursString);
+            }
+            
+            // Parse "X hours Y minutes" format
+            const hoursMatch = hoursString.match(/(\d+)\s*hours?/i);
+            const minutesMatch = hoursString.match(/(\d+)\s*minutes?/i);
+            
+            let totalHours = 0;
+            
+            if (hoursMatch) {
+                totalHours += parseInt(hoursMatch[1]);
+            }
+            
+            if (minutesMatch) {
+                totalHours += parseInt(minutesMatch[1]) / 60;
+            }
+            
+            return totalHours;
+        }
+        
         // Add click listeners to percentage buttons
         percentageBtns.forEach(btn => {
             btn.addEventListener('click', function() {
@@ -585,7 +609,8 @@
             const urlParams = new URLSearchParams(window.location.search);
             const customerName = urlParams.get('name') || 'Unknown Customer';
             const price = parseFloat(urlParams.get('price')) || 0;
-            const hours = parseFloat(urlParams.get('hours')) || 0;
+            const hoursParam = urlParams.get('hours') || '0';
+            const hours = parseHours(hoursParam);
             recordID = urlParams.get('recordID') || '';
             
             // Calculate hourly rate
@@ -607,4 +632,4 @@
 
 **Example URL:**
 ```
-https://moving-tech.github.io/price-change/?name=John%20Doe&hours=5&price=500&recordID=rec123456789012
+https://moving-tech.github.io/price-change/?name=John%20Doe&hours=7%20hours%2045%20minutes&price=775&recordID=rec123456789012
