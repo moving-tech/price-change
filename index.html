@@ -428,6 +428,15 @@
             box-shadow: 0 12px 35px rgba(245, 158, 11, 0.4);
         }
         
+        .payment-btn.partial {
+            background: linear-gradient(135deg, #8b5cf6 0%, #6d28d9 100%);
+            box-shadow: 0 8px 25px rgba(139, 92, 246, 0.3);
+        }
+        
+        .payment-btn.partial:hover {
+            box-shadow: 0 12px 35px rgba(139, 92, 246, 0.4);
+        }
+        
         .payment-btn.cancel {
             background: linear-gradient(135deg, #4b5563 0%, #374151 100%);
             box-shadow: 0 8px 25px rgba(75, 85, 99, 0.3);
@@ -541,11 +550,12 @@
         <div class="modal-content">
             <div class="modal-header">
                 <div class="modal-title">Payment Status</div>
-                <div class="modal-subtitle">Did the customer pay for the move?</div>
+                <div class="modal-subtitle">What is the payment status for this move?</div>
             </div>
             <div class="payment-buttons">
-                <button class="payment-btn" onclick="submitWithPaymentStatus('paid')">✓ Yes, Customer Paid</button>
-                <button class="payment-btn later" onclick="submitWithPaymentStatus('will_pay_later')">⏰ Will Pay Later</button>
+                <button class="payment-btn" onclick="submitWithPaymentStatus('Paid')">✓ Paid in Full</button>
+                <button class="payment-btn partial" onclick="submitWithPaymentStatus('Partial')">💵 Partial Payment</button>
+                <button class="payment-btn later" onclick="submitWithPaymentStatus('Unpaid')">⏰ Unpaid</button>
                 <button class="payment-btn cancel" onclick="closePaymentModal()">Cancel</button>
             </div>
         </div>
