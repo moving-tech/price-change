@@ -691,16 +691,25 @@
         }
         
         function submitWithPaymentStatus(paymentStatus) {
+            console.log('Payment status selected:', paymentStatus);
+            console.log('Pending action:', pendingAction);
+            
             closePaymentModal();
             
             if (pendingAction === 'adjusted') {
+                console.log('Calling applyAdjustment with payment status:', paymentStatus);
                 applyAdjustment(paymentStatus);
             } else if (pendingAction === 'no_change') {
+                console.log('Calling keepOriginal with payment status:', paymentStatus);
                 keepOriginal(paymentStatus);
+            } else {
+                console.error('No pending action found!');
             }
         }
         
         function applyAdjustment(paymentStatus) {
+            console.log('applyAdjustment called with:', paymentStatus);
+            
             const newPreTaxPrice = window.adjustedPreTaxPrice || originalPreTaxPrice;
             const newHours = window.adjustedHours || originalHours;
             const pstAmount = window.pstAmount || (originalPreTaxPrice * PST_RATE);
@@ -729,24 +738,26 @@
                 timestamp: new Date().toISOString()
             };
             
-            console.log('Sending webhook data:', webhookData);
+            console.log('Sending adjusted webhook data:', webhookData);
             sendToWebhook(webhookData);
         }
         
         function keepOriginal(paymentStatus) {
+            console.log('keepOriginal called with:', paymentStatus);
+            
             const originalPst = originalPreTaxPrice * PST_RATE;
             const originalGst = originalPreTaxPrice * GST_RATE;
             
             const webhookData = {
                 recordID: recordID,
                 customer_name: document.getElementById('customer-name').textContent,
-                original_price_after_tax: originalAfterTaxPrice,
-                original_price_before_tax: originalPreTaxPrice,
-                original_hours: originalHours,
+                original_price_after_tax: Math.round(originalAfterTaxPrice * 100) / 100,
+                original_price_before_tax: Math.round(originalPreTaxPrice * 100) / 100,
+                original_hours: Math.round(originalHours * 100) / 100,
                 adjustment_percentage: 0,
-                new_price_before_tax: originalPreTaxPrice,
-                new_price_after_tax: originalAfterTaxPrice,
-                new_hours: originalHours,
+                new_price_before_tax: Math.round(originalPreTaxPrice * 100) / 100,
+                new_price_after_tax: Math.round(originalAfterTaxPrice * 100) / 100,
+                new_hours: Math.round(originalHours * 100) / 100,
                 price_difference: 0,
                 hours_difference: 0,
                 pst: Math.round(originalPst * 100) / 100,
@@ -756,21 +767,31 @@
                 timestamp: new Date().toISOString()
             };
             
+            console.log('Sending no_change webhook data:', webhookData);
             sendToWebhook(webhookData);
         }
         
         function sendToWebhook(data) {
             const webhookUrl = 'https://n8n-movers-project-n8n.5gwahg.easypanel.host/webhook/f73c1753-3498-47c0-99a9-dceb4f594501';
             
+            console.log('sendToWebhook called');
+            console.log('Webhook URL:', webhookUrl);
+            console.log('Data to send:', data);
+            
             const submitBtn = document.getElementById('apply-btn');
             const keepBtn = document.querySelector('.submit-btn.secondary');
-            const originalApplyText = submitBtn.textContent;
-            const originalKeepText = keepBtn.textContent;
             
-            submitBtn.textContent = 'Processing...';
-            submitBtn.disabled = true;
-            keepBtn.textContent = 'Processing...';
-            keepBtn.disabled = true;
+            // Disable both buttons
+            if (submitBtn) {
+                submitBtn.textContent = 'Processing...';
+                submitBtn.disabled = true;
+            }
+            if (keepBtn) {
+                keepBtn.textContent = 'Processing...';
+                keepBtn.disabled = true;
+            }
+            
+            console.log('Starting fetch request...');
             
             fetch(webhookUrl, {
                 method: 'POST',
@@ -779,20 +800,41 @@
                 },
                 body: JSON.stringify(data)
             })
-            .then(response => response.json())
+            .then(response => {
+                console.log('Response received:', response);
+                console.log('Response status:', response.status);
+                console.log('Response ok:', response.ok);
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                return response.json();
+            })
             .then(result => {
-                console.log('Success:', result);
-                alert('Price adjustment submitted successfully!');
+                console.log('Success! Result:', result);
+                alert('✓ Price adjustment submitted successfully!');
+                
+                // Optionally redirect or reset form
+                // window.location.reload();
             })
             .catch(error => {
-                console.error('Error:', error);
-                alert('Error submitting adjustment. Please try again.');
+                console.error('Error occurred:', error);
+                console.error('Error message:', error.message);
+                console.error('Error stack:', error.stack);
+                alert('⚠ Error submitting adjustment: ' + error.message + '\n\nPlease check the console for details.');
             })
             .finally(() => {
-                submitBtn.textContent = originalApplyText;
-                submitBtn.disabled = false;
-                keepBtn.textContent = originalKeepText;
-                keepBtn.disabled = false;
+                console.log('Request complete, re-enabling buttons');
+                
+                // Re-enable buttons
+                if (submitBtn) {
+                    submitBtn.textContent = 'Apply Adjustment';
+                    submitBtn.disabled = false;
+                }
+                if (keepBtn) {
+                    keepBtn.textContent = 'Keep Original Price';
+                    keepBtn.disabled = false;
+                }
             });
         }
         
