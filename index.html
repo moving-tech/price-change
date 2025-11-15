@@ -559,7 +559,6 @@
         let hourlyRate = 0;
         let currentAdjustment = 0;
         let recordID = '';
-        let pendingAction = ''; // 'adjusted' or 'no_change'
         
         // Tax rates
         const PST_RATE = 0.07;
@@ -681,30 +680,50 @@
         });
         
         function showPaymentModal(action) {
-            pendingAction = action;
-            document.getElementById('payment-modal').classList.add('active');
+            console.log('showPaymentModal called with action:', action);
+            const modal = document.getElementById('payment-modal');
+            modal.dataset.pendingAction = action;
+            console.log('Stored action in modal dataset:', modal.dataset.pendingAction);
+            modal.classList.add('active');
+            console.log('Modal should now be visible');
         }
         
         function closePaymentModal() {
-            document.getElementById('payment-modal').classList.remove('active');
-            pendingAction = '';
+            console.log('closePaymentModal called');
+            const modal = document.getElementById('payment-modal');
+            modal.classList.remove('active');
+            console.log('Modal closed');
         }
         
         function submitWithPaymentStatus(paymentStatus) {
+            console.log('submitWithPaymentStatus called');
             console.log('Payment status selected:', paymentStatus);
-            console.log('Pending action:', pendingAction);
+            
+            const modal = document.getElementById('payment-modal');
+            const action = modal.dataset.pendingAction;
+            
+            console.log('Retrieved action from modal:', action);
+            console.log('Action type:', typeof action);
+            
+            if (!action) {
+                console.error('ERROR: No pending action found in modal dataset!');
+                alert('Error: No action was set. Please try again.');
+                closePaymentModal();
+                return;
+            }
             
             closePaymentModal();
             
-            if (pendingAction === 'adjusted') {
+            if (action === 'adjusted') {
                 console.log('Calling applyAdjustment with payment status:', paymentStatus);
                 applyAdjustment(paymentStatus);
-            } else if (pendingAction === 'no_change') {
+            } else if (action === 'no_change') {
                 console.log('Calling keepOriginal with payment status:', paymentStatus);
                 keepOriginal(paymentStatus);
-            } else {
-                console.error('No pending action found!');
             }
+            
+            // Clear the action after processing
+            delete modal.dataset.pendingAction;
         }
         
         function applyAdjustment(paymentStatus) {
