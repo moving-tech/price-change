@@ -580,6 +580,11 @@
         const adjustedDisplay = document.getElementById('adjusted-display');
         const applyBtn = document.getElementById('apply-btn');
         
+        // Helper function to round prices to 2 decimal places
+        function roundPrice(price) {
+            return parseFloat((Math.round(price * 100) / 100).toFixed(2));
+        }
+        
         // Function to round to nearest 15 minutes (0.25 hours)
         function roundToNearestQuarterHour(hours) {
             const rounded = Math.round(hours * 4) / 4;
@@ -640,18 +645,18 @@
                 // Round to nearest 15 minutes
                 const newHours = roundToNearestQuarterHour(calculatedNewHours);
                 
-                // Calculate new pre-tax price with percentage adjustment
+                // Calculate new pre-tax price with percentage adjustment (rounded to 2 decimals)
                 const preTaxAdjustment = (originalPreTaxPrice * percent) / 100;
-                const newPreTaxPrice = originalPreTaxPrice + preTaxAdjustment;
+                const newPreTaxPrice = roundPrice(originalPreTaxPrice + preTaxAdjustment);
                 
-                // Calculate taxes on new pre-tax price
-                const pstAmount = newPreTaxPrice * PST_RATE;
-                const gstAmount = newPreTaxPrice * GST_RATE;
-                const afterTaxPrice = newPreTaxPrice + pstAmount + gstAmount;
+                // Calculate taxes on new pre-tax price (rounded to 2 decimals)
+                const pstAmount = roundPrice(newPreTaxPrice * PST_RATE);
+                const gstAmount = roundPrice(newPreTaxPrice * GST_RATE);
+                const afterTaxPrice = roundPrice(newPreTaxPrice + pstAmount + gstAmount);
                 
-                // Calculate differences
+                // Calculate differences (rounded to 2 decimals)
                 const hoursDifference = newHours - originalHours;
-                const priceDifference = afterTaxPrice - originalAfterTaxPrice;
+                const priceDifference = roundPrice(afterTaxPrice - originalAfterTaxPrice);
                 
                 console.log('Original pre-tax:', originalPreTaxPrice);
                 console.log('New pre-tax:', newPreTaxPrice);
@@ -676,7 +681,7 @@
                 
                 document.getElementById('price-difference').textContent = `${priceDiffText} (${hoursDiffText})`;
                 
-                // Store values for webhook submission
+                // Store values for webhook submission (already rounded)
                 window.adjustedPreTaxPrice = newPreTaxPrice;
                 window.adjustedHours = newHours;
                 window.pstAmount = pstAmount;
@@ -741,27 +746,27 @@
             
             const newPreTaxPrice = window.adjustedPreTaxPrice || originalPreTaxPrice;
             const newHours = window.adjustedHours || originalHours;
-            const pstAmount = window.pstAmount || (originalPreTaxPrice * PST_RATE);
-            const gstAmount = window.gstAmount || (originalPreTaxPrice * GST_RATE);
+            const pstAmount = window.pstAmount || roundPrice(originalPreTaxPrice * PST_RATE);
+            const gstAmount = window.gstAmount || roundPrice(originalPreTaxPrice * GST_RATE);
             const afterTaxPrice = window.afterTaxPrice || originalAfterTaxPrice;
             
-            const priceDifference = afterTaxPrice - originalAfterTaxPrice;
+            const priceDifference = roundPrice(afterTaxPrice - originalAfterTaxPrice);
             const hoursDifference = newHours - originalHours;
             
             const webhookData = {
                 recordID: recordID,
                 customer_name: document.getElementById('customer-name').textContent,
-                original_price_after_tax: Math.round(originalAfterTaxPrice * 100) / 100,
-                original_price_before_tax: Math.round(originalPreTaxPrice * 100) / 100,
+                original_price_after_tax: roundPrice(originalAfterTaxPrice),
+                original_price_before_tax: roundPrice(originalPreTaxPrice),
                 original_hours: Math.round(originalHours * 100) / 100,
                 adjustment_percentage: currentAdjustment,
-                new_price_before_tax: Math.round(newPreTaxPrice * 100) / 100,
-                new_price_after_tax: Math.round(afterTaxPrice * 100) / 100,
+                new_price_before_tax: roundPrice(newPreTaxPrice),
+                new_price_after_tax: roundPrice(afterTaxPrice),
                 new_hours: Math.round(newHours * 100) / 100,
-                price_difference: Math.round(priceDifference * 100) / 100,
+                price_difference: priceDifference,
                 hours_difference: Math.round(hoursDifference * 100) / 100,
-                pst: Math.round(pstAmount * 100) / 100,
-                gst: Math.round(gstAmount * 100) / 100,
+                pst: roundPrice(pstAmount),
+                gst: roundPrice(gstAmount),
                 payment_status: paymentStatus,
                 status: 'adjusted',
                 timestamp: new Date().toISOString()
@@ -774,23 +779,23 @@
         function keepOriginal(paymentStatus) {
             console.log('keepOriginal called with:', paymentStatus);
             
-            const originalPst = originalPreTaxPrice * PST_RATE;
-            const originalGst = originalPreTaxPrice * GST_RATE;
+            const originalPst = roundPrice(originalPreTaxPrice * PST_RATE);
+            const originalGst = roundPrice(originalPreTaxPrice * GST_RATE);
             
             const webhookData = {
                 recordID: recordID,
                 customer_name: document.getElementById('customer-name').textContent,
-                original_price_after_tax: Math.round(originalAfterTaxPrice * 100) / 100,
-                original_price_before_tax: Math.round(originalPreTaxPrice * 100) / 100,
+                original_price_after_tax: roundPrice(originalAfterTaxPrice),
+                original_price_before_tax: roundPrice(originalPreTaxPrice),
                 original_hours: Math.round(originalHours * 100) / 100,
                 adjustment_percentage: 0,
-                new_price_before_tax: Math.round(originalPreTaxPrice * 100) / 100,
-                new_price_after_tax: Math.round(originalAfterTaxPrice * 100) / 100,
+                new_price_before_tax: roundPrice(originalPreTaxPrice),
+                new_price_after_tax: roundPrice(originalAfterTaxPrice),
                 new_hours: Math.round(originalHours * 100) / 100,
                 price_difference: 0,
                 hours_difference: 0,
-                pst: Math.round(originalPst * 100) / 100,
-                gst: Math.round(originalGst * 100) / 100,
+                pst: originalPst,
+                gst: originalGst,
                 payment_status: paymentStatus,
                 status: 'no_change',
                 timestamp: new Date().toISOString()
